@@ -5,3 +5,8 @@ progress
 matplotlib
 easydict
 scipy
+imageio
+imageio-ffmpeg
+paho-mqtt
+requests
+pycryptodome
