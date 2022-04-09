@@ -131,7 +131,7 @@ trusted-host = pypi.tuna.tsinghua.edu.cn
 
 可以直接从本repo下的code文件夹中复制PCIA-local文件夹，作为源码文件夹。
 
-或者从我的其他repo中clone：
+或者从我的其他repo中clone（暂未开放clone）：
 
 ```bash
 git clone https://github.com/JoshuaWenHIT/PCIA-local.git
@@ -171,14 +171,127 @@ python setup.py build develop
 
 </details>
 
-## <div align="center">如何使用PCIA ?</div>
+## <div align="center">如何测试PCIA ?</div>
 
-在完成安装步骤之后，就可以运行代码了。
-首先，需要对部署好的代码进行测试，这部分测试主要分为两部分：demo测试和main测试。
+在完成安装步骤之后，需要对部署代码进行初步测试。
+这部分测试主要分为3个部分：demo测试、main测试和upload测试。
 
 <details open>
 <summary>demo测试</summary>
 
+demo.py文件默认使用test2.mp4作为测试视频，可直接运行：
+
+```bash
+python demo.py
+```
+
+检测结果会在./video文件夹下生成test2_res.mp4结果视频，如果整个计算过程正常且结果视频正常，则demo测试通过。
+
+值得一提的是，demo测试主要用于测试检测计数网络部署是否成功，并不涉及PCIA产品部分的通信、推流和云上传等任务。
+这部分的测试则主要在main测试中完成。
 
 
 </details>
+
+<details open>
+<summary>main测试</summary>
+
+main测试可以分为3个步骤进行：1）代码授权； 2）代码启动； 3）联调。
+
+**步骤 1: 代码授权**
+
+这部分涉及./lib/model.py中的代码加密部分，加密部分的内容会在“如何加密PCIA？”部分详细说明，这里仅对运行所使用的license.lic文件的生成做出说明。
+
+在./code文件夹中，encode文件夹表示加密功能文件。生成license.lic文件前，需要知道部署主机的mac地址：
+
+```bash
+ifconfig
+```
+
+<div align="center">
+<img src="data/images/get_mac.png">
+</div>
+
+以上图为例，分别获得了3组参数，其中enp0s31f6为正在使用的网卡型号，该型号会根据不同设备而不同。
+
+**请注意自己的设备网卡型号！！！并在PCIA-local文件夹中./lib/model.py的line87进行修改！！！**
+
+mac地址在ether后表示： b0:6e:bf:60:2a:24，获取mac地址后在终端输入（在encode根目录下）：
+
+```bash
+python CreateLicense.py $your_macAddress-$month-$day # e.g. b06ebf602a24-05-01
+```
+
+其中，$your_macAddress填充所部署设备的mac地址，$month-$day填写license.lic文件授权截止日期（如果想永久授权可以填写13-01，即正常月份中不存在的月份）。
+运行后可在encode根目录下获得license.lic文件，将该文件复制到PCIA-local根目录下，即可完成授权。
+
+**步骤 2: 代码启动**
+
+完成授权后，在main.py中进行修改：1）修改line18的mac地址；2）修改line20的摄像头地址。完成后在终端输入：
+
+```bash
+python main.py
+```
+
+如果运行正常，可观察到如下输出：
+
+```bash
+已授权!
+生成模型...
+加载模型 ./weights/pcia_v7_b
+
+模型加载完毕!
+等待接收服务器指令......
+```
+
+**步骤 3: 联调**
+
+需要联系公司人员进行配合测试，公司工作人员会使用平板控制算法的开启和结束，需要实际操作演练。
+
+</details>
+
+<details open>
+<summary>upload测试</summary>
+
+**需保证./video/output下存有合法命名视频，建议在main测试步骤3联调后进行！！！**
+
+终端输入：
+
+```bash
+python upload.py
+```
+
+如果终端显示上传成功，则表示upload测试通过。
+
+</details>
+
+## <div align="center">如何加密PCIA ?</div>
+
+在完成测试工作后，出于技术保密角度，需要对库文件代码和网络权重文件进行加密。
+
+在“如何测试PCIA？”中，说明了代码授权方法，下面将从剩余2个方面进行说明：1）代码加密；2）模型加密。
+
+**步骤 1: 代码加密**
+
+代码加密主要将.py文件通过Cython方法加密为.so库文件，放在终端进行运行。在encode/encryptionforcode下将待加密的.py文件复制到process文件夹，终端运行：
+
+```bash
+python encryptcode.py build_ext --inplace
+```
+
+可在process文件夹下获得加密好的.so文件将其一一对应替换掉PCIA-local的./lib中的.py文件，即可完成代码加密。
+
+**步骤 2: 模型加密**
+
+模型加密主要将.pth文件通过密码本哈希校验的方法加密为无后缀名的权重文件，在PCIA-local中./weights文件夹下已经存在已加密的文件。
+将待加密的.pth文件复制到encode/encryptionformodel/encryption/temp文件夹，
+修改encode/encryptionformodel/encryption/main.py中的line15，自定义输入权重文件名和输出文件路径，
+最后终端运行：
+
+```bash
+python main.py # 注意此处的main.py文件路径为encode/encryptionformodel/encryption/main.py，请勿与PCIA-local下的main.py弄混
+```
+
+可在temp文件夹下获得加密好的模型权重文件，将其替换掉PCIA-local的./weights中的.pth文件，即可完成模型加密。
+
+**建议加密后重新进行上述测试，以保证加密无误！！！**
