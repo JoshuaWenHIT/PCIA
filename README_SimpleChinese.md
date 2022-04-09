@@ -271,7 +271,8 @@ python upload.py
 
 在“如何测试PCIA？”中，说明了代码授权方法，下面将从剩余2个方面进行说明：1）代码加密；2）模型加密。
 
-**步骤 1: 代码加密**
+<details open>
+<summary>代码加密</summary>
 
 代码加密主要将.py文件通过Cython方法加密为.so库文件，放在终端进行运行。在encode/encryptionforcode下将待加密的.py文件复制到process文件夹，终端运行：
 
@@ -281,7 +282,10 @@ python encryptcode.py build_ext --inplace
 
 可在process文件夹下获得加密好的.so文件将其一一对应替换掉PCIA-local的./lib中的.py文件，即可完成代码加密。
 
-**步骤 2: 模型加密**
+</details>
+
+<details open>
+<summary>模型加密</summary>
 
 模型加密主要将.pth文件通过密码本哈希校验的方法加密为无后缀名的权重文件，在PCIA-local中./weights文件夹下已经存在已加密的文件。
 将待加密的.pth文件复制到encode/encryptionformodel/encryption/temp文件夹，
@@ -293,5 +297,7 @@ python main.py # 注意此处的main.py文件路径为encode/encryptionformodel/
 ```
 
 可在temp文件夹下获得加密好的模型权重文件，将其替换掉PCIA-local的./weights中的.pth文件，即可完成模型加密。
+
+</details>
 
 **建议加密后重新进行上述测试，以保证加密无误！！！**
