@@ -10,3 +10,4 @@ imageio-ffmpeg
 paho-mqtt
 requests
 pycryptodome
+gputils
