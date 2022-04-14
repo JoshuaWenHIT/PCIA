@@ -103,7 +103,7 @@ Terminal input：
 sudo apt install git
 ```
 
-**步骤 6: Replace the source of conda**
+**Step 6: Replace the source of conda**
 
 Terminal input：
 
