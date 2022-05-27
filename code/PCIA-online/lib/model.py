@@ -1920,12 +1920,15 @@ def __intersect(point_aa, point_bb,
     s02_x = point_aa[0] - point_cc[0]
     s02_y = point_aa[1] - point_cc[1]
     s_numer = s10_x * s02_y - s10_y * s02_x
-    if (s_numer < 0) == denomPositive:
+    if (s_numer <= 0) == denomPositive:
         return False
     t_numer = s32_x * s02_y - s32_y * s02_x
-    if (t_numer < 0) == denomPositive:
+    if (t_numer <= 0) == denomPositive:
         return False
-
+    if s_numer == denom and ((t_numer <= denom) == denomPositive):
+        return True
+    if t_numer == denom and ((s_numer <= denom) == denomPositive):
+        return True
     if ((s_numer > denom) == denomPositive) or ((t_numer > denom) == denomPositive):
         return False
 
